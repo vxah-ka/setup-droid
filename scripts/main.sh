@@ -1,16 +1,16 @@
 #!/bin/bash
 
 #0. Tạo đường dẫn mặc định
-DIR_APK="/sdcard/Download/AutoMega/apk"
-DIR_OTHER="/sdcard/Download/AutoMega/other"
-TEMP_DIR="/sdcard/Download/AutoMega/temp_dl"
+DIR_APK="/sdcard/Download/AutoDroid/apk"
+DIR_OTHER="/sdcard/Download/AutoDroid/other"
+TEMP_DIR="/sdcard/Download/AutoDroid/temp_dl"
 EXTRACT_DIR="$HOME/apks_tmp_$$"
 TMP_DIR="/data/local/tmp"
 mkdir -p "$DIR_APK"
 mkdir -p "$DIR_OTHER"
 mkdir -p "$TEMP_DIR"
 #1. Ghi lại nhật ký
-LOG="/sdcard/Download/AutoMega/program.log"
+LOG="/sdcard/Download/AutoDroid/program.log"
 exec > >(tee -a "$LOG") 2>&1
 echo -e "\e[34mProvided by Khoaa\e[0m"
 #2. Cài đặt megatools nếu chưa có trên hệ thống
@@ -20,11 +20,11 @@ if ! command -v megatools &> /dev/null; then
         echo "[+] Đang cài đặt tự động..."
         pkg update -y && pkg install megatools -y
     elif [[ "$choice" == "n" || "$choice" == "N" ]]; then
+        curl -L -O "https://github.com/vxah-ka/setup-droid/releases/download/v1.0.0/termux-backup.tar.gz"
+        mv termux-backup.tar.gz /sdcard/Download/
         echo "[+] Đang cài đặt từ file backup..."
         tar -zxf /sdcard/Download/termux-backup.tar.gz -C /data/data/com.termux/files --recursive-unlink --preserve-permissions
-        echo "[+] Cài đặt thành công, sẽ tự thoát termux sau 3 giây..."
-        sleep 3
-        exit
+        echo "[+] Cài đặt thành công..."
     else
         echo "[-] Lựa chọn không hợp lệ, thoát chương trình."
         exit 1
@@ -86,28 +86,17 @@ shopt -u nullglob
 #7. Tự động hóa cài đặt hệ thống (Developer)
 echo "[+] Bật Tùy chọn nhà phát triển..."
 su -c "settings put global development_settings_enabled 1"
+su -c "settings put global window_animation_scale 0"
+su -c "settings put global transition_animation_scale 0"
+su -c "settings put global animator_duration_scale 0"
 echo "[+] Bật Hiển thị số lần nhấn (Show touches)..."
 su -c "settings put system show_touches 1"
 echo "[+] Thiết lập DPI về mức 521..."
 su -c "wm density 221"
 echo "[+] Thay đổi Launcher mặc định thành [Android Launcher]..."
 su -c "cmd package set-home-activity amirz.rootless.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity"
-if su -c "pm list packages" | grep -q "com.og.launcher"; then
-    su -c "pm clear com.og.launcher"
-    su -c "pm uninstall --user 0 com.og.launcher"
-    echo "[+] Đã xóa com.og.launcher..."
-else
-    echo "[-] com.og.launcher không tồn tại, tiếp tục..."
-fi
 echo "[+] Đặt Cốc Cốc làm trình duyệt mặc định..."
 su -c "cmd role add-role-holder android.app.role.BROWSER com.coccoc.trinhduyet"
-if su -c "pm list packages" | grep -q "com.android.chrome"; then
-    su -c "pm clear com.android.chrome"
-    su -c "pm uninstall --user 0 com.android.chrome"
-    echo "[+] Đã xóa com.android.chrome..."
-else
-    echo "[-] com.android.chrome không tồn tại, tiếp tục..."
-fi
 echo "[+] Đổi ngôn ngữ máy sang Vietnames..."
 su -c "settings put system system_locales vi-VN"
 echo "[+] Chuyển giao diện sang darkmode..."
