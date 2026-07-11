@@ -84,6 +84,9 @@ for apks in "$DIR_APK"/*.apks; do
 done
 shopt -u nullglob
 #7. Tự động hóa cài đặt hệ thống (Developer)
+echo "[+] Thay đổi thời gian thiết bị..."
+su -c "setprop persist.sys.timezone Asia/Ho_Chi_Minh"
+su -c "settings put global auto_time_zone 0"
 echo "[+] Bật Tùy chọn nhà phát triển..."
 su -c "settings put global development_settings_enabled 1"
 su -c "settings put global window_animation_scale 0"
