@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd / || exit 1
+exec 3>&2
 #0. Tạo đường dẫn mặc định
 DIR_APK="/sdcard/Download/AutoDroid/apk"
 DIR_OTHER="/sdcard/Download/AutoDroid/other"
@@ -20,10 +22,16 @@ if ! command -v megatools &> /dev/null; then
         echo "[+] Đang cài đặt tự động..."
         pkg update -y && pkg install megatools -y
     elif [[ "$choice" == "n" || "$choice" == "N" ]]; then
-        curl -L -O "https://github.com/vxah-ka/setup-droid/releases/download/v1.0.0/termux-backup.tar.gz"
-        mv termux-backup.tar.gz /sdcard/Download/
+        BACKUP_FILE="/sdcard/Download/termux-backup.tar.gz"
+        echo "[+] Đang tải file backup..."
+        if curl -# -L -o "$BACKUP_FILE" "https://github.com/vxah-ka/setup-droid/releases/download/v1.0.0/termux-backup.tar.gz" 2>&3; then
+            echo "[+] Đã tải xong: $(basename "$BACKUP_FILE") ($(du -h "$BACKUP_FILE" | cut -f1))"
+        else
+            echo "[!] Tải file backup thất bại, thoát chương trình."
+            exit 1
+        fi
         echo "[+] Đang cài đặt từ file backup..."
-        tar -zxf /sdcard/Download/termux-backup.tar.gz -C /data/data/com.termux/files --recursive-unlink --preserve-permissions
+        tar -zxf "$BACKUP_FILE" -C /data/data/com.termux/files --recursive-unlink --preserve-permissions
         echo "[+] Cài đặt thành công..."
     else
         echo "[-] Lựa chọn không hợp lệ, thoát chương trình."
@@ -54,7 +62,11 @@ for apk_file in "$DIR_APK"/*.apk; do
         filename=$(basename "$apk_file")
         echo "  -> Cài đặt: $filename"
         su -c "cp \"$apk_file\" \"$TMP_DIR/$filename\""
-        su -c "pm install -r \"$TMP_DIR/$filename\""
+        if su -c "pm install -r \"$TMP_DIR/$filename\"" >/dev/null 2>&1; then
+            echo -e "\rSuccess"
+        else
+            echo -e "\rFailed"
+        fi
         su -c "rm \"$TMP_DIR/$filename\""
     fi
 done
@@ -71,11 +83,15 @@ for apks in "$DIR_APK"/*.apks; do
         INDEX=0
         for apk_part in "$EXTRACT_DIR"/*.apk; do
             if [ -f "$apk_part" ]; then
-                su -c "pm install-write $SESSION_ID split_$INDEX \"$apk_part\""
+                su -c "pm install-write $SESSION_ID split_$INDEX \"$apk_part\"" >/dev/null 2>&1
                 INDEX=$((INDEX + 1))
             fi
         done
-        su -c "pm install-commit $SESSION_ID"
+        if su -c "pm install-commit $SESSION_ID" >/dev/null 2>&1; then
+            echo -e "\rSuccess"
+        else
+            echo -e "\rFailed"
+        fi
     else
         echo "[!] Không thể tạo Install Session. ($SESSION_OUTPUT)"
     fi
