@@ -60,7 +60,7 @@ shopt -s nullglob
 for apk_file in "$DIR_APK"/*.apk; do
     if [ -f "$apk_file" ]; then
         filename=$(basename "$apk_file")
-        echo "  -> Cài đặt: $filename"
+        echo -e "\r  -> Cài đặt: $filename"
         su -c "cp \"$apk_file\" \"$TMP_DIR/$filename\""
         if su -c "pm install -r \"$TMP_DIR/$filename\"" >/dev/null 2>&1; then
             echo -e "\rSuccess"
@@ -70,13 +70,13 @@ for apk_file in "$DIR_APK"/*.apk; do
         su -c "rm \"$TMP_DIR/$filename\""
     fi
 done
-echo "[+] Đang cài đặt các file .apks..."
+echo -e "\r[+] Đang cài đặt các file .apks..."
 for apks in "$DIR_APK"/*.apks; do
   if [ -f "$apks" ]; then
     rm -rf "$EXTRACT_DIR"
     mkdir -p "$EXTRACT_DIR"
     unzip -q -o "$apks" -d "$EXTRACT_DIR"
-    echo "  -> Cài đặt: $(basename "$apks")"
+    echo -e "\r  -> Cài đặt: $(basename "$apks")"
     SESSION_OUTPUT=$(su -c "pm install-create -r")
     SESSION_ID=$(echo "$SESSION_OUTPUT" | tr -dc '0-9')   
     if [ -n "$SESSION_ID" ]; then
@@ -93,13 +93,14 @@ for apks in "$DIR_APK"/*.apks; do
             echo -e "\rFailed"
         fi
     else
-        echo "[!] Không thể tạo Install Session. ($SESSION_OUTPUT)"
+        echo -e "\r[!] Không thể tạo Install Session. ($SESSION_OUTPUT)"
     fi
     rm -rf "$EXTRACT_DIR"
   fi
 done
 shopt -u nullglob
 #7. Tự động hóa cài đặt hệ thống (Developer)
+printf '\r'
 echo "[+] Thay đổi thời gian thiết bị..."
 su -c "setprop persist.sys.timezone Asia/Ho_Chi_Minh"
 su -c "settings put global auto_time_zone 0"
