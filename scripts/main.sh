@@ -100,31 +100,30 @@ for apks in "$DIR_APK"/*.apks; do
 done
 shopt -u nullglob
 #7. Tự động hóa cài đặt hệ thống (Developer)
-printf '\r'
-echo "[+] Thay đổi thời gian thiết bị..."
+echo -e "\r[+] Thay đổi thời gian thiết bị..."
 su -c "setprop persist.sys.timezone Asia/Ho_Chi_Minh"
 su -c "settings put global auto_time_zone 0"
-echo "[+] Bật Tùy chọn nhà phát triển..."
+echo -e "\r[+] Bật Tùy chọn nhà phát triển..."
 su -c "settings put global development_settings_enabled 1"
 su -c "settings put global window_animation_scale 0"
 su -c "settings put global transition_animation_scale 0"
 su -c "settings put global animator_duration_scale 0"
-echo "[+] Bật Hiển thị số lần nhấn (Show touches)..."
+echo -e "\r[+] Bật Hiển thị số lần nhấn (Show touches)..."
 su -c "settings put system show_touches 1"
-echo "[+] Thiết lập DPI về mức 521..."
+echo -e "\r[+] Thiết lập DPI về mức 521..."
 su -c "wm density 221"
-echo "[+] Thay đổi Launcher mặc định thành [Android Launcher]..."
-su -c "cmd package set-home-activity amirz.rootless.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity"
-echo "[+] Đặt FireFox làm trình duyệt mặc định..."
+echo -e "\r[+] Thay đổi Launcher mặc định thành [Android Launcher]..."
+su -c "cmd package set-home-activity amirz.rootless.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity" >/dev/null 2>&1
+echo -e "\r[+] Đặt FireFox làm trình duyệt mặc định..."
 su -c "cmd role add-role-holder android.app.role.BROWSER org.mozilla.firefox"
-echo "[+] Đổi ngôn ngữ máy sang Vietnames..."
+echo -e "\r[+] Đổi ngôn ngữ máy sang Vietnames..."
 su -c "settings put system system_locales vi-VN"
-echo "[+] Chuyển giao diện sang darkmode..."
+echo -e "\r[+] Chuyển giao diện sang darkmode..."
 su -c "settings put secure ui_night_mode 2"
-echo -e "\e[34mProvided by Khoaa\e[0m"
-echo -e "\e[31m[!]Chuẩn bị khởi động lại[!]\e[0m"
+echo -e "\r\e[34mProvided by Khoaa\e[0m"
+echo -e "\r\e[31m[!]Chuẩn bị khởi động lại[!]\e[0m"
 for i in 5 4 3 2 1; do
-    echo -e "Khởi động lại sau \e[31m$i\e[0m giây..."
+    echo -e "\rKhởi động lại sau \e[31m$i\e[0m giây..."
     sleep 1
 done
 su -c "killall system_server"
