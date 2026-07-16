@@ -20,7 +20,7 @@
 - [Yêu cầu hệ thống](#-yêu-cầu-hệ-thống)
 - [Cài đặt](#-cài-đặt)
 - [Luồng hoạt động tổng quát](#-luồng-hoạt-động-tổng-quát)
-- [Các thiết lập hệ thống được áp dụng](#-các-thiết-lập-hệ-thống-được-áp-dụng)
+- [Các thiết lập hệ thống được áp dụng](#%EF%B8%8F-các-thiết-lập-hệ-thống-được-áp-dụng)
 - [Cấu trúc thư mục sau khi chạy](#-cấu-trúc-thư-mục-sau-khi-chạy)
 - [Lưu ý & Cảnh báo](#️-lưu-ý--cảnh-báo)
 
