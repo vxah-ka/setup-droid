@@ -2,20 +2,21 @@
 
 cd / || exit 1
 exec 3>&2
-#0. Tạo đường dẫn mặc định
+
 DIR_APK="/sdcard/Download/AutoDroid/apk"
 DIR_OTHER="/sdcard/Download/AutoDroid/other"
 TEMP_DIR="/sdcard/Download/AutoDroid/temp_dl"
 EXTRACT_DIR="$HOME/apks_tmp_$$"
 TMP_DIR="/data/local/tmp"
+
 mkdir -p "$DIR_APK"
 mkdir -p "$DIR_OTHER"
 mkdir -p "$TEMP_DIR"
-#1. Ghi lại nhật ký
+
 LOG="/sdcard/Download/AutoDroid/program.log"
 exec > >(tee -a "$LOG") 2>&1
 echo -e "\e[34mProvided by Khoaa\e[0m"
-#2. Cài đặt megatools nếu chưa có trên hệ thống
+
 if ! command -v megatools &> /dev/null; then
     read -p "[?] megatools -> Cài tự động[y/Y] || Cài từ file backup[n/N]: " choice
     if [[ "$choice" == "y" || "$choice" == "Y" ]]; then
@@ -24,7 +25,7 @@ if ! command -v megatools &> /dev/null; then
     elif [[ "$choice" == "n" || "$choice" == "N" ]]; then
         BACKUP_FILE="/sdcard/Download/termux-backup.tar.gz"
         echo "[+] Đang tải file backup..."
-        if curl -# -L -o "$BACKUP_FILE" "https://github.com/vxah-ka/setup-droid/releases/download/v1.0.0/termux-backup.tar.gz" 2>&3; then
+        if curl -# -L -o "$BACKUP_FILE" "https://github.com/vxah-ka/mstorage/releases/download/1/termux-backup.tar.gz" 2>&3; then
             echo "[+] Đã tải xong: $(basename "$BACKUP_FILE") ($(du -h "$BACKUP_FILE" | cut -f1))"
         else
             echo "[!] Tải file backup thất bại, thoát chương trình."
@@ -38,10 +39,10 @@ if ! command -v megatools &> /dev/null; then
         exit 1
     fi
 fi
-#3. Nhập link Mega
+
 echo "[+] Đang đọc link Mega..."
 read MEGA_LINK <<< "https://mega.nz/folder/L7YSVQBK#iaLQ1dNjyTDp8YCW3Tr72Q"
-#4. Tải xuống
+
 echo "[+] Đang tải xuống file từ link Mega..."
 megatools dl "$MEGA_LINK" --path "$TEMP_DIR"
 if [ "$(ls -A "$TEMP_DIR" 2>/dev/null | wc -l)" -eq 0 ]; then
@@ -49,34 +50,30 @@ if [ "$(ls -A "$TEMP_DIR" 2>/dev/null | wc -l)" -eq 0 ]; then
     rm -rf "$TEMP_DIR" && exit 1
 fi
 echo "[+] Đã tải thành công! Số lượng file là: $(ls "$TEMP_DIR" | wc -l)."
-#5. Phân loại file
+
 echo "[+] Đang phân loại file đã tải xuống..."
 find "$TEMP_DIR" -type f \( -iname "*.apk" -o -iname "*.apks" \) -exec mv {} "$DIR_APK/" \;
 find "$TEMP_DIR" -type f -not -iname "*.apk" -not -iname "*.apks" -exec mv {} "$DIR_OTHER/" \;
 rm -rf "$TEMP_DIR"
-#6. Tự động cài đặt TẤT CẢ file .apk và .apks
+
 echo "[+] Đang cài đặt các file .apk..."
 shopt -s nullglob
 for apk_file in "$DIR_APK"/*.apk; do
     if [ -f "$apk_file" ]; then
         filename=$(basename "$apk_file")
-        echo -e "\r  -> Cài đặt: $filename"
+        echo -e "  -> Cài đặt: $filename"
         su -c "cp \"$apk_file\" \"$TMP_DIR/$filename\""
-        if su -c "pm install -r \"$TMP_DIR/$filename\"" >/dev/null 2>&1; then
-            echo -e "\rSuccess"
-        else
-            echo -e "\rFailed"
-        fi
+        su -c "pm install -r \"$TMP_DIR/$filename\""
         su -c "rm \"$TMP_DIR/$filename\""
     fi
 done
-echo -e "\r[+] Đang cài đặt các file .apks..."
+echo -e "[+] Đang cài đặt các file .apks..."
 for apks in "$DIR_APK"/*.apks; do
   if [ -f "$apks" ]; then
     rm -rf "$EXTRACT_DIR"
     mkdir -p "$EXTRACT_DIR"
     unzip -q -o "$apks" -d "$EXTRACT_DIR"
-    echo -e "\r  -> Cài đặt: $(basename "$apks")"
+    echo -e "  -> Cài đặt: $(basename "$apks")"
     SESSION_OUTPUT=$(su -c "pm install-create -r")
     SESSION_ID=$(echo "$SESSION_OUTPUT" | tr -dc '0-9')   
     if [ -n "$SESSION_ID" ]; then
@@ -87,43 +84,43 @@ for apks in "$DIR_APK"/*.apks; do
                 INDEX=$((INDEX + 1))
             fi
         done
-        if su -c "pm install-commit $SESSION_ID" >/dev/null 2>&1; then
-            echo -e "\rSuccess"
-        else
-            echo -e "\rFailed"
-        fi
+        su -c "pm install-commit $SESSION_ID"
     else
-        echo -e "\r[!] Không thể tạo Install Session. ($SESSION_OUTPUT)"
+        echo -e "[!] Không thể tạo Install Session. ($SESSION_OUTPUT)"
     fi
     rm -rf "$EXTRACT_DIR"
   fi
 done
 shopt -u nullglob
-#7. Tự động hóa cài đặt hệ thống (Developer)
-echo -e "\r[+] Thay đổi thời gian thiết bị..."
+
+echo -e "[+] Thay đổi thời gian thiết bị..."
 su -c "setprop persist.sys.timezone Asia/Ho_Chi_Minh"
 su -c "settings put global auto_time_zone 0"
-echo -e "\r[+] Bật Tùy chọn nhà phát triển..."
+echo -e "[+] Bật Tùy chọn nhà phát triển..."
 su -c "settings put global development_settings_enabled 1"
 su -c "settings put global window_animation_scale 0"
 su -c "settings put global transition_animation_scale 0"
 su -c "settings put global animator_duration_scale 0"
-echo -e "\r[+] Bật Hiển thị số lần nhấn (Show touches)..."
+echo -e "[+] Bật Hiển thị số lần nhấn (Show touches)..."
 su -c "settings put system show_touches 1"
-echo -e "\r[+] Thiết lập DPI về mức 521..."
+echo -e "[+] Thiết lập DPI về mức 521..."
 su -c "wm density 221"
-echo -e "\r[+] Thay đổi Launcher mặc định thành [Android Launcher]..."
+echo -e "[+] Thay đổi Launcher mặc định thành [Android Launcher]..."
 su -c "cmd package set-home-activity amirz.rootless.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity" >/dev/null 2>&1
-echo -e "\r[+] Đặt FireFox làm trình duyệt mặc định..."
+echo -e "[+] Đặt FireFox làm trình duyệt mặc định..."
 su -c "cmd role add-role-holder android.app.role.BROWSER org.mozilla.firefox"
-echo -e "\r[+] Đổi ngôn ngữ máy sang Vietnames..."
+echo -e "[+] Đổi ngôn ngữ máy sang Vietnames..."
 su -c "settings put system system_locales vi-VN"
-echo -e "\r[+] Chuyển giao diện sang darkmode..."
+echo -e "[+] Chuyển giao diện sang darkmode..."
 su -c "settings put secure ui_night_mode 2"
-echo -e "\r\e[34mProvided by Khoaa\e[0m"
-echo -e "\r\e[31m[!]Chuẩn bị khởi động lại[!]\e[0m"
+echo -e "[+] Đổi dns sang nextdns(clone@dns.vn)..."
+su -c "settings put global private_dns_mode hostname"
+su -c "settings put global private_dns_specifier 323f53.dns.nextdns.io"
+
+echo -e "\e[34mProvided by Khoaa\e[0m"
+echo -e "\e[31m[!]Chuẩn bị khởi động lại[!]\e[0m"
 for i in 5 4 3 2 1; do
-    echo -e "\rKhởi động lại sau \e[31m$i\e[0m giây..."
+    echo -e "Khởi động lại sau \e[31m$i\e[0m giây..."
     sleep 1
 done
 su -c "killall system_server"
